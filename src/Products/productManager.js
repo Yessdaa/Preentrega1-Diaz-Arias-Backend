@@ -1,7 +1,7 @@
 import fs from 'fs';
-import Product from './productClass.js';
+import Product from './src/Products/productClass.js';
 
-class ProductManager {
+class productManager {
     products;
     productFileName;
     productDirName;
@@ -9,8 +9,8 @@ class ProductManager {
     constructor() {
         this.products = new Array();
         this.filesystem = fs;
-        this.productDirName = './src/data/';
-        this.productFileName = this.productDirName + '/productData.json'
+        this.productDirName = './src/Json/';
+        this.productFileName = this.productDirName + './src/Json/products.json'
     }
 
     getAllProducts = async (limit) => {
@@ -112,4 +112,4 @@ class ProductManager {
     }
 }
 
-export default ProductManager;
+export default productManager;

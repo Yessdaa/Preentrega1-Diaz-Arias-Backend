@@ -3,9 +3,9 @@ import handlebars from 'express-handlebars';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 
-import viewRouter from './Routes/views.router.js';
-import ProductManager from './Products/productManager.js';
-import __dirname from './utils.js';
+import viewRouter from './src/routes/views.router.js';
+import ProductManager from './src/Products/productManager.js';
+import __dirname from './src/utils.js';
 
 const server = express();
 const PORT = 9080;

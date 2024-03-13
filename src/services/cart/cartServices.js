@@ -9,7 +9,7 @@ class CartManager {
     constructor() {
         this.carts = new Array()
         this.filesystem = fs;
-        this.cartsDirName = './src';
+        this.cartsDirName = './src/Json';
         this.cartsFilename = this.cartsDirName + '/cart.json'
     }
     getCartsList = async () => {

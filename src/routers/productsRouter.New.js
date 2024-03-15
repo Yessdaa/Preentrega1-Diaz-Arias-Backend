@@ -1,49 +1,76 @@
-import express from 'express';
-import { Router } from 'express';
-import ProductManager from '../src/public/productManager.js';
+import express from 'express'
+import mongoose from 'mongoose';
+import { ProductManager } from '../services/products/index.js';
+import { BadRequestError, ApiResponse } from '../utils/index.js'
+import Product from '../services/products/productClass.js'
+import { uploader } from '../utils/utils.js';
+import moment from 'moment'
 
+const productsRoutes = express.Router();
+mongoose.connect('mongodb://localhost:27017/ecommerce')
+if (mongoose) {
+    console.log('conectado')
+}
+const productManager = new ProductManager()
 
-const productsRouter = express.Router();
-const productManager = new ProductManager();
-
-productsRouter.get('/api/Products', async (req, res) => {
-    productManager.getAllProducts()
-    const limit = req.query.limit;
-    let result;
-    if (limit) {
-        result = await productManager.getAllProducts(limit);
-    } else {
-        result = await productManager.getAllProducts();
+productsRoutes.get('/', async (req, res) => {
+    try {
+        const products = await productManager.getAllProductList()
+        return ApiResponse.success(res, products)
+    } catch (error) {
+        return ApiResponse.error(res, error)
     }
-    result.success ? res.status(200).json(result) : res.status(400).json(result)
+})
+
+productsRoutes.get('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (isNaN(id)) {
+            throw new BadRequestError(`El id debe ser numerico`)
+        }
+        const product = await productManager.getProductById(id);
+        if (!product) {
+            throw new BadRequestError("El producto no existe")
+        }
+        return ApiResponse.success(res, product)
+    } catch (error) {
+        return ApiResponse.error(res, error)
+    }
+})
+
+productsRoutes.post('/', uploader.fields([{ name: 'img1', maxCount: 1 }, { name: 'img2', maxCount: 1 }]), async (req, res) => {
+    try {
+        const { title, shortdescription, description, stock, price, pcode, category, img1, img2 } = req.body
+        const newProduct = new Product(title, shortdescription, description, stock, price, pcode, category, img1, img2)
+      
+        newProduct.fecharegistro = moment().format()
+        const product = await productManager.addNewProduct(newProduct)
+        return ApiResponse.success(res, product)
+    } catch (error) {
+        return ApiResponse.error(res, error)
+    }
 });
 
-
-productsRouter.get('/api/Products/:pid', async (req, res) => {
-    const pid = req.params.pid;
-    const result = await productManager.getProductById(pid);
-    result.success ? res.status(200).json(result) : res.status(400).json(result)
+productsRoutes.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description, shortdescription, stock, price, pcode, category } = req.body
+        const newProduct = new Product(title, description, shortdescription, stock, price, pcode, category)
+        const product = await productManager.updateProduct(id, newProduct)
+        return ApiResponse.success(res, product)
+    } catch (error) {
+        return ApiResponse.error(res, error)
+    }
 })
 
-productsRouter.post('/api/products', async (req, res) => {
-    const product = req.body;
-    const result = await productManager.addProduct(product)
-    result.success ? res.status(200).json(result) : res.status(400).json(result)
+productsRoutes.delete('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await productManager.deleteProduct(id)
+        return ApiResponse.success(res, 'Producto Borrado')
+    } catch (error) {
+        return ApiResponse.error(res, error)
+    }
+});
 
-})
-
-productsRouter.put('/api/products', async (req, res) => {
-    const product = req.body;
-    const result = await productManager.updateProduct(product)
-    result.success ? res.status(200).json(result) : res.status(400).json(result)
-})
-
-productsRouter.delete('/api/products/:pid', async (req, res) => {
-    const pid = req.params.pid;
-    const result = await productManager.deleteProduct(pid)
-    result.success ? res.status(200).json(result) : res.status(400).json(result)
-
-
-})
-
-export default productsRouter;
+export { productsRoutes }

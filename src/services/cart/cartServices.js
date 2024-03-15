@@ -1,60 +1,37 @@
-import { error } from 'console';
-import fs from 'fs'
+import { cartModel } from "../models/cart.model.js";
+import { BadRequestError, NotFoundError } from "../../../utils/index.js";
+import moment from 'moment'
 
-class CartManager {
-    carts;
-    cartsFilename;
-    cartsDirName;
-    filesystem;
+export default class CartService {
     constructor() {
-        this.carts = new Array()
-        this.filesystem = fs;
-        this.cartsDirName = './src/Json';
-        this.cartsFilename = this.cartsDirName + '/cart.json'
+
     }
-    getCartsList = async () => {
-        const result = await this.filesystem.promises.readFile(this.cartsFilename, 'utf-8')
-        const parseList = JSON.parse(result)
-        return { success: true, message: 'Lista' },parseList
+    getAllCart = async () => {
+        let carts = await cartModel.find().populate('products.product')
+        return carts
     }
 
     createNewCart = async () => {
-        function generateId() {
-            return Math.random().toString(36).substring(2, 11);
-        }
-        const cart = { id: generateId(), products: [] };
-        const parseList = await this.getCartsList()
-        this.carts.push(...parseList, cart);
-        try {
-            const result = await this.filesystem.promises.writeFile(this.cartsFilename, JSON.stringify(this.carts, null, 2, '\t'))
-            return { success: true, message: 'Carrito creado con exito', carts: this.carts }
-        } catch (error) {
-            return { success: false, message: 'Hubo un error al crear el carrito de compras' }
-        }
+        const product = [];
+        const newEmptyCart = await cartModel.create({ product })
+        return newEmptyCart
     }
 
-    addProductToCart = async (cid, pid) => {
-        const parseList = await this.getCartsList();
-    
-        const cart = parseList.find((c) => c.id === cid);
-
-        if (!cart) {
-            return { success: false, message: 'No se encuentra un carrito de compras para agregar productos' };
-        }
-        const productInCart = cart.products.find((p) => p.productId === pid);
-        if (productInCart) {
-            productInCart.quantity += 1;
-        } else {
-            cart.products.push({ productId: pid, quantity: 1 });
-        }
-        await this.filesystem.promises.writeFile(this.cartsFilename, JSON.stringify(parseList, null, 2, '\t'));
-        return { success: true, message: 'Producto agregado al carrito', cart };
+    addProductToCart = async (_cid, _pid) => {
+        const fecha = moment().format()
+        const addProduct = await cartModel.updateOne(
+            { _id: _cid },
+            { $push: { products: { product: _pid, fechanueva: fecha } } },
+            { new: true }
+        )
+        return addProduct
     }
-    getCartById = async (cid) => {
-        const parseList = await this.getCartsList()
-        const result = parseList.find((p) => p.id === cid)
-        return { success: true, message: 'Datos del producto solicitado:', result }
+    deleteProductFromCart = async (_cid, _pid) => {
+        const deleteProduct = await cartModel.deleteOne(
+            { _id: _cid },
+            { products: { product: _pid } },
+            { new: true }
+        )
+        return deleteProduct
     }
 }
-
-export default cartManager

@@ -1,33 +1,60 @@
-import express from 'express';
-import CartManager from '../Cart/cartManager.js'
+import express from 'express'
+import mongoose from 'mongoose';
+import CartService from '../services/cart/cartServices.js';
+import { BadRequestError, ApiResponse } from '../utils/index.js'
+import moment from 'moment'
 
+const cartRoutes = express.Router();
 
-const cartsRouter = express.Router();
+mongoose.connect('mongodb://localhost:27017/ecommerce')
+if (mongoose) {
+    console.log('conectado')
+}
 
-const cartManager = new CartManager()
+const cartService = new CartService()
 
-cartsRouter.get('/api/cart', async (req, res) => {
-    const result = await cartManager.getCartsList()
-    result.success ? res.status(200).json(result.parseList) : res.status(400).json(result)
-
-});
-
-cartsRouter.get('/api/cart/:cid', async (req, res) => {
-    const cid = req.params.cid;
-    const result = await cartManager.getCartById(cid)
-    result.success ? res.status(200).json(result.result) : res.status(400).json(result)
-
+cartRoutes.get('/', async (req, res) => {
+    try {
+        const carts = await cartService.getAllCart()
+        return ApiResponse.success(res, carts)
+    } catch (error) {
+        return ApiResponse.error(res, error)
+    }
+})
+cartRoutes.post('/', async (req, res) => {
+    try {
+        const carts = await cartService.createNewCart()
+        return ApiResponse.success(res, carts)
+    } catch (error) {
+        return ApiResponse.error(res, error)
+    }
 })
 
-cartsRouter.post('/api/cart/', async (req, res) => {
-    const result = await cartManager.createNewCart()
-    result.success ? res.status(200).json(result.carts) : res.status(400).json(result)
-});
+cartRoutes.put("/:id/products/:pid", async (req, res) => {
+    try {
+        const { id, pid } = req.params
+        const regProduct = await cartService.addProductToCart(id, pid)
+        console.log(req.params)
+        res.send({ regProduct })
 
-cartsRouter.post('/api/cart/:cid/product/:pid:', async (req, res) => {
-    const { cid, pid } = req.params;
-    const result = await cartManager.addProductToCart(cid, pid);
-    result.success ? res.status(200).json(result.cart) : res.status(400).json(result)
+    } catch (error) {
+        res.status(500).send({ error: error, message: "No se pudo agregar el producto al Carrito." });
 
-});
-export default cartsRouter;
+    }
+})
+cartRoutes.delete("/:id/products/:pid", async (req, res) => {
+    try {
+        const { id, pid } = req.params
+        const regProduct = await cartService.deleteProductFromCart(id, pid)
+        console.log(req.params)
+        res.send({ regProduct })
+
+    } catch (error) {
+        res.status(500).send({ error: error, message: "No se pudo agregar el producto al Carrito." });
+
+    }
+})
+
+
+
+export { cartRoutes }

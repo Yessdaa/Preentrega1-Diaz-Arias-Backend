@@ -1,47 +1,26 @@
 import express from 'express'
 import mongoose from 'mongoose'
-import { UserManager } from '../services/users/UserManager.js'
-import { Users } from '../services/users/UsersClass.js'
-
-import { ApiResponse } from '../utils/apiResponse.js'
+import { Messages } from '../services/message/messageServices.js'
 
 mongoose.connect('mongodb://localhost:27017/ecommerce')
 if (mongoose) {
     console.log('conectado')
 }
 
-const userManager = new UserManager()
-const userRoutes = express.Router()
+const messageService = new Messages()
+const msgRoutes = express.Router()
 
-userRoutes.get('/', async (req, res) => {
-    try {
-        const users = await userManager.getAllUser()
-        return ApiResponse.success(res, users)
-    } catch (error) {
-        return ApiResponse.error(res, error)
-    }
-})
 
-userRoutes.post('/', async (req, res) => {
-    try {
-        const { name, lastName, email, username, password } = req.body
-        const newUser = new Users(name, lastName, email, username, password)
-        const user = await userManager.saveUser(newUser)
-        return ApiResponse.success(res, user)
-    } catch (error) {
-        return ApiResponse.error(res, error)
-    }
-})
+msgRoutes.get("/message", async (req, res) => {
+    res.render("messages");
+});
 
-userRoutes.get('/:id?', async (req, res) => {
-    try {
-        const { id } = req.params
-        const user = await userManager.getUserById(id)       
-        return ApiResponse.success(res, user)
-    } catch (error) {
-        return ApiResponse.error(res, error)
+msgRoutes.post("/message", async (req, res) => {
+    const msg = req.body;
+    const saveMsg = await messageService.saveMessage(msg)
+    console.log(saveMsg)
+    res.render("messages");
+});
 
-    }
-})
 
-export { userRoutes }
+export { msgRoutes }

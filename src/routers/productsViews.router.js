@@ -1,47 +1,68 @@
-import express from 'express'
-import mongoose from 'mongoose'
-import { UserManager } from '../services/users/UserManager.js'
-import { Users } from '../services/users/UsersClass.js'
+import express from 'express';
+import { BadRequestError } from '../utils/index.js'
+import mongoose from 'mongoose';
+import { productModel } from "../services/models/product.model.js";
 
-import { ApiResponse } from '../utils/apiResponse.js'
+const viewsProductsRouter = express.Router();
 
-mongoose.connect('mongodb://localhost:27017/ecommerce')
-if (mongoose) {
-    console.log('conectado')
-}
 
-const userManager = new UserManager()
-const userRoutes = express.Router()
 
-userRoutes.get('/', async (req, res) => {
+viewsProductsRouter.get('/', async (req, res) => {
+    const { limit = 10, page = 1, sort, query } = req.query;
+    let sortOptions = sort ? { price: sort === 'desc' ? -1 : 1 } : {};
+    let queryOptions = query ? JSON.parse(query) : {};
+
     try {
-        const users = await userManager.getAllUser()
-        return ApiResponse.success(res, users)
-    } catch (error) {
-        return ApiResponse.error(res, error)
-    }
-})
+        const options = {
+            ...queryOptions,
+            limit: parseInt(limit),
+            page: parseInt(page),
+            sort: sortOptions,
+            lean: true
+        };
 
-userRoutes.post('/', async (req, res) => {
+        const products = await productModel.paginate({}, options);
+
+        const modifiedProducts = products.docs.map(product => ({
+            _id: product._id.toString(),
+            title: product.title,
+            description: product.description,
+            price: product.price
+        }));
+
+        res.render('products', {
+            products: modifiedProducts,
+            totalPages: products.totalPages,
+            currentPage: products.page,
+            hasNextPage: products.hasNextPage,
+            hasPrevPage: products.hasPrevPage,
+            nextPage: products.nextPage,
+            prevPage: products.prevPage,
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+});
+
+viewsProductsRouter.get('/:id', async (req, res) => {
+    const productId = req.params.id;
+
     try {
-        const { name, lastName, email, username, password } = req.body
-        const newUser = new Users(name, lastName, email, username, password)
-        const user = await userManager.saveUser(newUser)
-        return ApiResponse.success(res, user)
+        const product = await productModel.findById(productId).lean();
+
+        if (!product) {
+            throw new BadRequestError('Producto no encontrado');
+        }
+
+        res.render('productDetails', { product });
     } catch (error) {
-        return ApiResponse.error(res, error)
+        res.status(500).send(error.message);
     }
-})
+});
 
-userRoutes.get('/:id?', async (req, res) => {
-    try {
-        const { id } = req.params
-        const user = await userManager.getUserById(id)       
-        return ApiResponse.success(res, user)
-    } catch (error) {
-        return ApiResponse.error(res, error)
+viewsProductsRouter.post('/add-to-cart/:id', async (req, res) => {
+    const productId = req.params.id;
 
-    }
-})
+});
 
-export { userRoutes }
+export { viewsProductsRouter };

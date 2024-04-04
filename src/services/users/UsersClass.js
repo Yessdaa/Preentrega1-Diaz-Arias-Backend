@@ -7,5 +7,4 @@ class Users {
         this.password = password;
     }
 }
-
 export { Users }

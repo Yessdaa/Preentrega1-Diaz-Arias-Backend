@@ -1,8 +1,8 @@
 import { productModel } from "../models/product.model.js";
-import { BadRequestError, NotFoundError } from "../../../utils/index.js";
+import { BadRequestError, NotFoundError } from "../../utils/index.js";
 import moment from 'moment'
 
-export class ProductManager {
+export class ProductService {
 
     getAllProductList = async () => {
         const products = await productModel.find()
@@ -40,5 +40,18 @@ export class ProductManager {
             throw new BadRequestError('No existe un producto para borrar con ese id.')
         }
         return product;
+    }
+
+    getProductCount = async (filter) => {
+        const count = await productModel.countDocuments(filter);
+        return count;
+    }
+
+    getProducts = async (filter, limit, skip, sortOption) => {
+        const products = await productModel.find(filter)
+            .limit(parseInt(limit))
+            .skip(parseInt(skip))
+            .sort(sortOption);
+        return products;
     }
 }

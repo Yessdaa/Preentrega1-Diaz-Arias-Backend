@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
+import mongoosePaginate from 'mongoose-paginate-v2';
 
-const productCollection = "products"
+const productCollection = "products";
 
 const stringTypeSchemaUniqueRequired = {
     type: String,
@@ -21,11 +22,12 @@ const productSchema = new mongoose.Schema({
     price: stringTypeSchemaNonUniqueRequired,
     pcode: stringTypeSchemaUniqueRequired,
     category: stringTypeSchemaNonUniqueRequired,
-    img1: stringTypeSchemaNonUniqueRequired,
-    img2: stringTypeSchemaNonUniqueRequired,
+    img1: String,
+    img2: String,
     fecharegistro: stringTypeSchemaNonUniqueRequired,
-    carts: { type: [{ cart: { type: mongoose.Schema.Types.ObjectId, ref: "carts" } }] }
+});
 
-})
 
-export const productModel = mongoose.model(productCollection, productSchema)
+productSchema.plugin(mongoosePaginate);
+
+export const productModel = mongoose.model(productCollection, productSchema);

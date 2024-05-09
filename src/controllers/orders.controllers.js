@@ -1,4 +1,4 @@
-import { ordersService } from "../server.js"
+import { ordersService } from "../services/services.js"
 
 export const getOrderById = async (req, res) => {
     const { userId } = req.params

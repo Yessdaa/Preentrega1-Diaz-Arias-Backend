@@ -6,12 +6,12 @@ import cors from 'cors'
 import { __dirname } from "../utilsdir.js";
 import { passportCall } from "./utils.js";
 import initializePassport from "./config/passport.config.js";
-import { UsersExtRouter } from './routes/usersExt.routes.js'
-import { ProductsExtRouter } from './routes/productsExt.routes.js'
-import { CartRouter } from './routes/cartsExt.routes.js';
-import { SmsAndEmail } from './routes/messageAndEmail.routes.js'
-import { OrdersRoutes } from './routes/ordersExt.routes.js';
-import { AddressRoutes } from './routes/addressExt.routes.js';
+import { UsersExtRouter } from './routers/usersExt.routes.js'
+import { ProductsExtRouter } from './routers/productsExt.routes.js'
+import { CartRouter } from './routers/cartsExt.routes.js';
+import { SmsAndEmail } from './routers/messageAndEmail.routes.js'
+import { OrdersRoutes } from './routers/ordersExt.routes.js';
+import { addressRoutes } from './routers/addressExt.routes.js';
 import MongoSingleton from './config/mongodb-singleton.js';
 
 const server = express();
@@ -34,7 +34,7 @@ const cartRouter = new CartRouter()
 const userExtRouter = new UsersExtRouter()
 const productsExtRouter = new ProductsExtRouter()
 const orderRoutes = new OrdersRoutes()
-const addressRoutes = new AddressRoutes()
+const addressRoutesI = new AddressRoutes()
 server.use("/com/", smsAndEmail.getRouter())
 server.use("/api/users", userExtRouter.getRouter())
 server.use('/api/products', productsExtRouter.getRouter())

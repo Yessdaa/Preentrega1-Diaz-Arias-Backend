@@ -11,7 +11,7 @@ import { ProductsExtRouter } from './routers/productsExt.routes.js'
 import { CartRouter } from './routers/cartsExt.routes.js';
 import { SmsAndEmail } from './routers/messageAndEmail.routes.js'
 import { OrdersRoutes } from './routers/ordersExt.routes.js';
-import { addressRoutes } from './routers/addressExt.routes.js';
+import { AddressRoutes } from './routers/addressExt.routes.js';
 import MongoSingleton from './config/mongodb-singleton.js';
 
 const server = express();
@@ -34,7 +34,7 @@ const cartRouter = new CartRouter()
 const userExtRouter = new UsersExtRouter()
 const productsExtRouter = new ProductsExtRouter()
 const orderRoutes = new OrdersRoutes()
-const addressRoutesI = new AddressRoutes()
+const addressRoutes = new AddressRoutes()
 server.use("/com/", smsAndEmail.getRouter())
 server.use("/api/users", userExtRouter.getRouter())
 server.use('/api/products', productsExtRouter.getRouter())
